@@ -1,0 +1,231 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SPECTЯ — Sign up</title>
+
+  <!-- Michroma font -->
+  <link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CDN (for quick prototyping) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root {
+      --accent: #7c3aed; /* purple */
+      --muted: #6b7280;
+    }
+
+    body {
+      background: linear-gradient(180deg, #0f172a 0%, #071130 100%);
+      color: #e6eef8;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    .logo {
+      font-family: 'Michroma', sans-serif;
+      letter-spacing: 2px;
+    }
+
+    /* soft glass card */
+    .glass {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      backdrop-filter: blur(6px);
+    }
+
+    /* small input focus */
+    input:focus, button:focus, textarea:focus {
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(124,58,237,0.12);
+      border-color: rgba(124,58,237,0.8);
+    }
+  </style>
+</head>
+<body>
+  <main class="min-h-screen flex items-center justify-center p-6">
+    <section class="w-full max-w-2xl mx-auto">
+      <div class="flex items-center gap-6 mb-8">
+        <div class="w-14 h-14 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center shadow-lg">
+          <span class="text-white text-xl font-semibold">S</span>
+        </div>
+        <div>
+          <h1 class="text-3xl logo">SPECTЯ</h1>
+          <p class="text-sm text-gray-400">See Beyond — create your account</p>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-8 shadow-xl">
+        <form id="signupForm" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-gray-300 mb-2">Full name</label>
+              <input id="name" name="name" type="text" required
+                class="w-full px-4 py-3 rounded-lg bg-transparent border border-white/10 placeholder-gray-500" placeholder="e.g. Junaid" />
+              <p id="nameError" class="text-xs text-rose-400 mt-1 hidden"></p>
+            </div>
+
+            <div>
+              <label class="block text-sm text-gray-300 mb-2">Email</label>
+              <input id="email" name="email" type="email" required
+                class="w-full px-4 py-3 rounded-lg bg-transparent border border-white/10 placeholder-gray-500" placeholder="you@mail.com" />
+              <p id="emailError" class="text-xs text-rose-400 mt-1 hidden"></p>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-300 mb-2">Password</label>
+            <div class="relative">
+              <input id="password" name="password" type="password" minlength="4" required
+                class="w-full px-4 py-3 rounded-lg bg-transparent border border-white/10 placeholder-gray-500" placeholder="At least 4 characters" />
+              <button type="button" id="togglePwd"
+                class="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-gray-400 px-2 py-1 rounded">
+                Show
+              </button>
+            </div>
+            <p id="passwordError" class="text-xs text-rose-400 mt-1 hidden"></p>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <label class="inline-flex items-center gap-2 text-sm text-gray-300">
+              <input id="terms" type="checkbox" class="h-4 w-4 rounded bg-white/5" />
+              <span>Accept terms &amp; privacy</span>
+            </label>
+            <a href="#" class="text-sm text-indigo-300 hover:underline">Already have an account?</a>
+          </div>
+
+          <div>
+            <button id="submitBtn" type="submit"
+              class="w-full py-3 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-500 font-medium shadow">
+              Create account
+            </button>
+          </div>
+
+          <div id="feedback" class="text-sm text-center text-gray-300 hidden"></div>
+        </form>
+      </div>
+
+      <footer class="text-center text-xs text-gray-500 mt-6">
+        By signing up you agree to SPECTЯ's terms. © <span id="year"></span>
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById('year').innerText = new Date().getFullYear();
+
+    const signupForm = document.getElementById('signupForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const feedback = document.getElementById('feedback');
+
+    const nameInput = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const pwdInput = document.getElementById('password');
+    const terms = document.getElementById('terms');
+
+    const nameError = document.getElementById('nameError');
+    const emailError = document.getElementById('emailError');
+    const passwordError = document.getElementById('passwordError');
+
+    // password show toggle
+    document.getElementById('togglePwd').addEventListener('click', (e) => {
+      e.preventDefault();
+      const t = e.currentTarget;
+      if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        t.innerText = 'Hide';
+      } else {
+        pwdInput.type = 'password';
+        t.innerText = 'Show';
+      }
+    });
+
+    function showError(el, msg) {
+      el.innerText = msg;
+      el.classList.remove('hidden');
+    }
+    function clearErrors() {
+      [nameError, emailError, passwordError].forEach(e => { e.innerText = ''; e.classList.add('hidden'); });
+      feedback.classList.add('hidden');
+    }
+
+    signupForm.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      clearErrors();
+
+      // basic client validation
+      let hasError = false;
+      if (!nameInput.value.trim()) {
+        showError(nameError, 'Please enter your name.');
+        hasError = true;
+      }
+      if (!emailInput.value || !/^\S+@\S+\.\S+$/.test(emailInput.value)) {
+        showError(emailError, 'Enter a valid email.');
+        hasError = true;
+      }
+      if (!pwdInput.value || pwdInput.value.length < 4) {
+        showError(passwordError, 'Password must be at least 4 characters.');
+        hasError = true;
+      }
+      if (!terms.checked) {
+        feedback.classList.remove('hidden');
+        feedback.innerText = 'You must accept the terms to continue.';
+        feedback.style.color = '#f87171';
+        hasError = true;
+      }
+      if (hasError) return;
+
+      // disable button & show loading
+      submitBtn.disabled = true;
+      const originalText = submitBtn.innerText;
+      submitBtn.innerText = 'Creating account...';
+
+      try {
+        const payload = {
+          name: nameInput.value.trim(),
+          email: emailInput.value.trim(),
+          password: pwdInput.value
+        };
+
+        const res = await fetch('/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (res.status === 201) {
+          // success: created
+          feedback.classList.remove('hidden');
+          feedback.style.color = '#86efac';
+          feedback.innerText = data.message || 'Account created. Check your email for OTP.';
+          signupForm.reset();
+        } else if (res.status === 409) {
+          feedback.classList.remove('hidden');
+          feedback.style.color = '#fca5a5';
+          feedback.innerText = data.error || 'Email already registered.';
+        } else {
+          // server-side error, try to show message
+          feedback.classList.remove('hidden');
+          feedback.style.color = '#fca5a5';
+          feedback.innerText = data.error || (data.message || 'Could not create account. Try again later.');
+        }
+      } catch (err) {
+        feedback.classList.remove('hidden');
+        feedback.style.color = '#fca5a5';
+        feedback.innerText = 'Network error — please try again.';
+        console.error('signup err', err);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = originalText;
+      }
+    });
+  </script>
+</body>
+</html>

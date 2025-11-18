@@ -15,14 +15,12 @@ var DB *gorm.DB
 func LoadEnv() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("error while loading env")
+		log.Fatal("error while loading env" + err.Error())
 	}
 
 }
 
 func ConnectDB() {
-
-	LoadEnv()
 
 	host := os.Getenv("DB_HOST")
 	user := os.Getenv("DB_USER")
