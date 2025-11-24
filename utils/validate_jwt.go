@@ -8,7 +8,7 @@ import (
 )
 
 // returs userId and Role
-func ValidateJwt(tokenStr string) (int, string, error) {
+func ValidateJwt(tokenStr string) (uint, string, error) {
 
 	secretKey := os.Getenv("JWT_SECRETKEY")
 
@@ -36,7 +36,7 @@ func ValidateJwt(tokenStr string) (int, string, error) {
 			return 0, "", fmt.Errorf("invalid role in token")
 		}
 
-		return int(userIDFloat), role, nil
+		return uint(userIDFloat), role, nil
 
 	}
 

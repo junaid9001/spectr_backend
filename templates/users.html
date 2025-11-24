@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Spectr — Manage Users</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-size: 15px;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background: #0f0f0f;
+            color: #fff;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            padding: 28px 20px;
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 900;
+            margin-bottom: 30px;
+            letter-spacing: -1px;
+        }
+
+        .logo span {
+            transform: scaleX(-1);
+            display: inline-block;
+            color: #888;
+        }
+
+        .menu a {
+            display: block;
+            padding: 12px 14px;
+            margin-bottom: 6px;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            transition: background 0.25s;
+        }
+
+        .menu a:hover,
+        .menu .active {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        .content {
+            flex: 1;
+            padding: 30px;
+            overflow: auto;
+        }
+
+        h1 {
+            margin-bottom: 18px;
+            font-size: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+
+        thead tr {
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        th,
+        td {
+            padding: 10px 8px;
+            vertical-align: middle;
+        }
+
+        tr+tr {
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        select,
+        input[type="checkbox"] {
+            padding: 6px;
+        }
+
+        button.save-btn {
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(180deg, #2b2b2b, #1f1f1f);
+            color: #fff;
+        }
+
+        .row-msg {
+            color: #f66;
+            display: none;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="logo">spect<span>ɾ</span></div>
+        <div class="menu">
+            <a href="/view/admin/dashboard">Dashboard</a>
+            <a class="active" href="/view/admin/users">Manage Users</a>
+            <a href="/view/admin/products">Manage Products</a>
+            <a href="/view/admin/orders">Manage Orders</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </div>
+
+    <div class="content">
+        <h1>Manage Users</h1>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:48px">ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th style="width:140px">Role</th>
+                    <th style="width:120px">Blocked</th>
+                    <th style="width:120px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .users}}
+                <tr data-id="{{.ID}}">
+                    <td>{{.ID}}</td>
+                    <td>{{.Name}}</td>
+                    <td>{{.Email}}</td>
+
+                    <td>
+                        <select class="role-select" data-original="{{.Role}}">
+                            <option value="user" {{if eq .Role "user" }}selected{{end}}>user</option>
+                            <option value="admin" {{if eq .Role "admin" }}selected{{end}}>admin</option>
+                        </select>
+                    </td>
+
+                    <td>
+                        <input class="blocked-checkbox" type="checkbox" {{if .IsBlocked}}checked{{end}}
+                            data-original="{{if .IsBlocked}}true{{else}}false{{end}}">
+                    </td>
+
+                    <td>
+                        <button class="save-btn">Save</button>
+                        <div class="row-msg"> </div>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+
+    </div>
+
+    <script>
+
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            window.location.href = "/view/login";
+        }
+
+        function logout() {
+            localStorage.removeItem("access_token");
+            document.cookie = "refresh_token=; Max-Age=0; path=/;";
+            window.location.href = "/view/login";
+        }
+
+        function setRowMessage(tr, text, isError = true) {
+            const msg = tr.querySelector(".row-msg");
+            if (!msg) return;
+            msg.style.display = "block";
+            msg.style.color = isError ? "#f66" : "#8f8";
+            msg.textContent = text;
+            setTimeout(() => { msg.style.display = "none"; msg.textContent = ""; }, 2200);
+        }
+
+
+        function checkboxBool(cb) {
+            return cb.checked === true;
+        }
+
+        async function updateRole(userId, role) {
+            const res = await fetch(`/admin/users/${encodeURIComponent(userId)}/role`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": "Bearer " + token,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ role })
+            });
+            if (!res.ok) {
+                const t = await res.text();
+                throw new Error(t || `status ${res.status}`);
+            }
+            return await res.json();
+        }
+
+        async function updateStatus(userId, isBlocked) {
+            const res = await fetch(`/admin/users/${encodeURIComponent(userId)}/status`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": "Bearer " + token,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ is_blocked: isBlocked })
+            });
+            if (!res.ok) {
+                const t = await res.text();
+                throw new Error(t || `status ${res.status}`);
+            }
+            return await res.json();
+        }
+
+
+        document.querySelectorAll("table tbody tr").forEach(tr => {
+            const btn = tr.querySelector(".save-btn");
+            const roleSelect = tr.querySelector(".role-select");
+            const blockedCb = tr.querySelector(".blocked-checkbox");
+            const userId = tr.dataset.id;
+
+            btn.addEventListener("click", async () => {
+                btn.disabled = true;
+                btn.textContent = "Saving...";
+                try {
+                    const promises = [];
+
+                    // role changed?
+                    if (roleSelect && roleSelect.value !== roleSelect.dataset.original) {
+                        promises.push(updateRole(userId, roleSelect.value).then(() => {
+                            roleSelect.dataset.original = roleSelect.value;
+                        }));
+                    }
+
+                    // status changed?
+                    const newBlocked = checkboxBool(blockedCb);
+                    const origBlocked = (blockedCb.dataset.original === "true");
+                    if (newBlocked !== origBlocked) {
+                        promises.push(updateStatus(userId, newBlocked).then(() => {
+                            blockedCb.dataset.original = newBlocked ? "true" : "false";
+                        }));
+                    }
+
+                    if (promises.length === 0) {
+                        setRowMessage(tr, "No changes to save", false);
+                        return;
+                    }
+
+                    await Promise.all(promises);
+                    setRowMessage(tr, "Saved", false);
+                } catch (err) {
+                    console.error(err);
+                    const msg = (err && err.message) ? err.message : "Update failed";
+                    setRowMessage(tr, "Update failed: " + msg, true);
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = "Save";
+                }
+            });
+        });
+
+        window.addEventListener("focus", () => {
+
+            location.reload();
+        });
+    </script>
+</body>
+
+</html>

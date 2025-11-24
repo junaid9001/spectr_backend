@@ -59,6 +59,12 @@ func SignupHandler(c *gin.Context) {
 		return
 	}
 
+	if err := config.DB.Model(&models.AppStats{}).Where("id=?", 1).
+		UpdateColumn("total_users", gorm.Expr("total_users + ?", 1)).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "db error"})
+		return
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"status":  "success",
 		"message": "Account created. Please check your email for the verification code.",
@@ -135,7 +141,7 @@ func Login(c *gin.Context) {
 		"/",                                   //path
 		"",
 		false,
-		true,
+		false,
 	)
 
 	c.JSON(http.StatusOK, gin.H{

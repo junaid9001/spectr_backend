@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Spectr — Manage Products</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-size: 15px;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            background: #0f0f0f;
+            color: #fff
+        }
+
+        .sidebar {
+            width: 260px;
+            background: rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            padding: 28px 20px;
+            
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 900;
+            margin-bottom: 30px;
+            letter-spacing: -1px
+        }
+
+        .logo span {
+            transform: scaleX(-1);
+            display: inline-block;
+            color: #ffffff
+        }
+
+        .menu a {
+            display: block;
+            padding: 12px 14px;
+            margin-bottom: 6px;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            transition: background .25s
+        }
+
+        .menu a:hover,
+        .menu .active {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff
+        }
+
+        .content {
+            flex: 1;
+            padding: 30px;
+            overflow: auto
+        }
+
+        h1 {
+            margin-bottom: 14px;
+            font-size: 20px
+        }
+
+        /* create card */
+        .card {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 18px
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        input,
+        select,
+        textarea,
+        button {
+            font-family: inherit
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="file"],
+        textarea,
+        select {
+            padding: 8px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: #fff;
+            border-radius: 8px;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: linear-gradient(180deg, #2b2b2b, #1f1f1f);
+            color: #fff;
+        }
+
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 60px
+        }
+
+        thead tr {
+            text-align: left;
+            border-bottom: 1px solid rgba(99, 99, 99, 0.392)
+        }
+
+        th,
+        td {
+            padding: 10px 8px;
+            vertical-align: middle
+        }
+
+        tr+tr {
+            border-top: 1px solid rgba(99, 99, 99, 0.392)
+        }
+
+        img.thumb {
+            height: 80px;
+            border-radius: 6px;
+            object-fit: cover
+        }
+
+        .actions button {
+            margin-right: 8px
+        }
+
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 60
+        }
+
+        .modal {
+            background: #0b0b0b;
+            padding: 18px;
+            border-radius: 12px;
+            min-width: 320px;
+            max-width: 720px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6)
+        }
+
+        .modal h3 {
+            margin-bottom: 12px
+        }
+
+        .modal .controls {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 12px
+        }
+
+        
+        .toast-wrap {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            z-index: 80;
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+
+        .toast {
+            background: #111;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+            min-width: 200px
+        }
+
+        .toast.success {
+            border: 1px solid #2d8f5a
+        }
+
+        .toast.error {
+            border: 1px solid #c64a4a
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="logo">spect<span>ɾ</span></div>
+        <div class="menu">
+            <a href="/view/admin/dashboard">Dashboard</a>
+            <a href="/view/admin/users">Manage Users</a>
+            <a class="active" href="/view/admin/products">Manage Products</a>
+            <a href="/view/admin/orders">Manage Orders</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </div>
+
+    <div class="content">
+        <h1>Manage Products</h1>
+
+
+        <section class="card" style="padding:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="font-size:16px; margin:0;">Add Product</h2>
+                <button id="add-toggle"
+                    style="padding:8px 12px; border-radius:8px; border:none; cursor:pointer; background:#1e1e1e; color:#fff;">
+                     + new product
+                </button>
+            </div>
+
+            <div id="create-panel" style="display:none; margin-top:12px;">
+
+                <form id="create-form" enctype="multipart/form-data"
+                    style="display:flex; flex-direction:column; gap:12px;">
+                    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                        <input name="name" placeholder="Name" required style="min-width:180px; padding:8px;" />
+                        <input name="price" type="number" step="0.01" placeholder="Price" required
+                            style="width:120px; padding:8px;" />
+                        <input name="stock_quantity" type="number" placeholder="Stock" required
+                            style="width:120px; padding:8px;" />
+                        <input name="category" placeholder="Category" style="min-width:140px; padding:8px;" />
+                    </div>
+
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input name="description" placeholder="Short description" style="flex:1; padding:8px;" />
+                        <input name="image" type="file" accept="image/*" style="color:#fff;" />
+                        <button type="submit"
+                            style="padding:8px 12px; border-radius:8px; border:none; cursor:pointer; background:#2b2b2b; color:#ffffff;">
+                            Add
+                        </button>
+                    </div>
+
+                    <div id="create-msg" style="margin-top:4px; color:#f66; display:none;"></div>
+                </form>
+
+            </div>
+        </section>
+
+
+        <section>
+
+            <div id="prod-error" style="color:#f66; display:none; margin-bottom:8px"></div>
+            <div id="prod-loading" style="padding:8px 0; display:none">Loading…</div>
+
+            <table id="prod-table">
+                <thead>
+                    <tr>
+                        <th style="width:56px">ID</th>
+                        <th>Name</th>
+                        <th style="width:120px">Price</th>
+                        <th style="width:100px">Stock</th>
+                        <th style="width:120px">Category</th>
+                        <th style="width:80px">Image</th>
+                        <th style="width:180px">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .data}}
+                    <tr data-id="{{.ID}}">
+                        <td>{{.ID}}</td>
+                        <td class="p-name">{{.Name}}</td>
+                        <td class="p-price">{{printf "%.2f" .Price}}</td>
+                        <td class="p-stock">{{.StockQuantity}}</td>
+                        <td class="p-category">{{.Category}}</td>
+                        <td>
+                            {{if .ImageUrl}}
+                            <img class="thumb" src="{{.ImageUrl}}" alt="{{.Name}}" />
+                            {{else}} - {{end}}
+                        </td>
+                        <td class="actions">
+                            <button class="edit-btn">Edit</button>
+                            <button class="delete-btn">Delete</button>
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+
+    <div id="modal" class="modal-backdrop" role="dialog" aria-hidden="true">
+        <div class="modal" role="document" aria-modal="true">
+            <h3>Edit product</h3>
+            <form id="edit-form">
+                <input type="hidden" name="id" id="edit-id">
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <input id="edit-name" name="name" placeholder="Name" style="min-width:180px" required />
+                    <input id="edit-price" name="price" type="number" step="0.01" placeholder="Price"
+                        style="width:120px" required />
+                    <input id="edit-stock" name="stock_quantity" type="number" placeholder="Stock" style="width:120px"
+                        required />
+                    <input id="edit-category" name="category" placeholder="Category" style="min-width:140px" />
+                </div>
+                <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+                    <input id="edit-description" name="description" placeholder="Short description" style="flex:1" />
+                    
+                    <div id="edit-image-wrap" style="display:flex;align-items:center;gap:8px">
+                        <img id="edit-image" class="thumb" src="" alt="" style="height:40px" />
+                        <small class="small" style="color:#aaa">Image changes are not supported in edit</small>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button type="button" id="modal-cancel">Cancel</button>
+                    <button type="submit">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <div class="toast-wrap" id="toast-wrap"></div>
+
+    <script>
+
+        const token = localStorage.getItem("access_token");
+        if (!token) location.href = "/view/login";
+        function logout() { localStorage.removeItem("access_token"); document.cookie = "refresh_token=; Max-Age=0; path=/;"; location.href = "/view/login"; }
+
+
+        function toast(message, type = "success", timeout = 3000) {
+            const wrap = document.getElementById("toast-wrap");
+            const t = document.createElement("div");
+            t.className = "toast " + (type === "error" ? "error" : "success");
+            t.textContent = message;
+            wrap.appendChild(t);
+            setTimeout(() => { t.style.opacity = "0"; setTimeout(() => wrap.removeChild(t), 250); }, timeout);
+        }
+
+        function showCreateMsg(msg, isError = true) {
+            const el = document.getElementById("create-msg");
+            el.style.display = "block";
+            el.style.color = isError ? "#f66" : "#8f8";
+            el.textContent = msg;
+            setTimeout(() => el.style.display = "none", 2500);
+        }
+
+
+        document.getElementById("create-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const fd = new FormData(form);
+            if (!fd.get("price") || fd.get("price") === "") return showCreateMsg("Price required");
+            if (!fd.get("stock_quantity") || fd.get("stock_quantity") === "") return showCreateMsg("Stock required");
+
+            try {
+                const res = await fetch("/admin/product", {
+                    method: "POST",
+                    headers: { "Authorization": "Bearer " + token },
+                    body: fd
+                });
+                const text = await res.text();
+                let json = {};
+                try { json = JSON.parse(text); } catch (e) { json = { message: text }; }
+
+                if (!res.ok) {
+                    showCreateMsg("Create failed: " + (json.error || json.message || res.status), true);
+                    return;
+                }
+
+                showCreateMsg("Product created", false);
+                toast("Product created", "success");
+                form.reset();
+
+                setTimeout(() => location.reload(), 700);
+            } catch (err) {
+                showCreateMsg("Create failed: " + err.message, true);
+                toast("Create failed: " + err.message, "error");
+            }
+        });
+
+
+        const modal = document.getElementById("modal");
+        function openModal() { modal.style.display = "flex"; modal.setAttribute("aria-hidden", "false"); }
+        function closeModal() { modal.style.display = "none"; modal.setAttribute("aria-hidden", "true"); }
+
+        document.getElementById("modal-cancel").addEventListener("click", (e) => { e.preventDefault(); closeModal(); });
+
+
+        document.querySelectorAll("tbody tr[data-id]").forEach(tr => {
+            const id = tr.dataset.id;
+            const editBtn = tr.querySelector(".edit-btn");
+            const delBtn = tr.querySelector(".delete-btn");
+
+            editBtn && editBtn.addEventListener("click", (ev) => {
+
+                const name = tr.querySelector(".p-name")?.textContent?.trim() || "";
+                const price = tr.querySelector(".p-price")?.textContent?.trim() || "0";
+                const stock = tr.querySelector(".p-stock")?.textContent?.trim() || "0";
+                const cat = tr.querySelector(".p-category")?.textContent?.trim() || "";
+                const img = tr.querySelector("img.thumb")?.src || "";
+
+                document.getElementById("edit-id").value = id;
+                document.getElementById("edit-name").value = name;
+                document.getElementById("edit-price").value = price;
+                document.getElementById("edit-stock").value = stock;
+                document.getElementById("edit-category").value = cat;
+                document.getElementById("edit-description").value = "";
+                const editImage = document.getElementById("edit-image");
+                if (img) { editImage.src = img; editImage.style.display = "inline-block"; } else { editImage.style.display = "none"; }
+                openModal();
+            });
+
+            delBtn && delBtn.addEventListener("click", async () => {
+
+                const ok = confirmDeleteUI();
+                if (!ok) return;
+                try {
+                    const res = await fetch(`/admin/product/${encodeURIComponent(id)}`, {
+                        method: "DELETE",
+                        headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" }
+                    });
+                    const text = await res.text();
+                    let json = {};
+                    try { json = JSON.parse(text); } catch (e) { json = { message: text }; }
+                    if (!res.ok) {
+                        toast("Delete failed: " + (json.error || json.message || res.status), "error");
+                        return;
+                    }
+                    toast("Deleted", "success");
+                    setTimeout(() => location.reload(), 500);
+                } catch (err) {
+                    toast("Delete failed: " + err.message, "error");
+                }
+            });
+
+        });
+
+
+        function confirmDeleteUI() {
+
+            return confirm("Delete this product? This action will soft-delete the product.");
+        }
+
+        document.getElementById("edit-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const id = document.getElementById("edit-id").value;
+            if (!id) { toast("Missing product id", "error"); return; }
+
+            const body = {};
+            const name = document.getElementById("edit-name").value.trim();
+            const price = document.getElementById("edit-price").value.trim();
+            const stock = document.getElementById("edit-stock").value.trim();
+            const cat = document.getElementById("edit-category").value.trim();
+            const desc = document.getElementById("edit-description").value.trim();
+
+            if (name !== "") body.name = name;
+            if (price !== "") {
+                const v = Number(price);
+                if (Number.isNaN(v)) return toast("Invalid price", "error");
+                body.price = v;
+            }
+            if (stock !== "") {
+                const s = parseInt(stock, 10);
+                if (Number.isNaN(s)) return toast("Invalid stock", "error");
+                body.stock_quantity = s;
+            }
+            if (cat !== "") body.category = cat;
+            if (desc !== "") body.description = desc;
+
+            if (Object.keys(body).length === 0) {
+                toast("No changes provided", "error");
+                return;
+            }
+
+            try {
+                const res = await fetch(`/admin/product/${encodeURIComponent(id)}`, {
+                    method: "PUT",
+                    headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+                    body: JSON.stringify(body)
+                });
+                const text = await res.text();
+                let json = {};
+                try { json = JSON.parse(text); } catch (e) { json = { message: text }; }
+
+                if (!res.ok) {
+                    toast("Update failed: " + (json.error || json.message || res.status), "error");
+                    return;
+                }
+
+                toast("Product updated", "success");
+                closeModal();
+                setTimeout(() => location.reload(), 600);
+            } catch (err) {
+                toast("Update failed: " + err.message, "error");
+            }
+        });
+
+
+//toggle
+        const toggle = document.getElementById("add-toggle");
+        const panel = document.getElementById("create-panel");
+        let open = false;
+
+        toggle.addEventListener("click", () => {
+            open = !open;
+            panel.style.display = open ? "block" : "none";
+            toggle.textContent = open ? "Close" : "Add new product";
+        });
+        
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") closeModal();
+        });
+    </script>
+</body>
+
+</html>

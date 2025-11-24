@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Spectr — Manage Orders</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+    }
+
+    body {
+      display: flex;
+      min-height: 100vh;
+      background: #0f0f0f;
+      color: #fff;
+    }
+
+    .sidebar {
+      width: 260px;
+      background: rgba(255, 255, 255, 0.05);
+      border-right: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(20px);
+      padding: 28px 20px;
+    }
+
+    .logo {
+      font-size: 26px;
+      font-weight: 900;
+      margin-bottom: 30px;
+      letter-spacing: -1px;
+    }
+
+    .logo span {
+      transform: scaleX(-1);
+      display: inline-block;
+      color: #888;
+    }
+
+    .menu a {
+      display: block;
+      padding: 12px 14px;
+      margin-bottom: 6px;
+      text-decoration: none;
+      color: rgba(255, 255, 255, 0.8);
+      border-radius: 10px;
+      transition: background .25s;
+    }
+
+    .menu a:hover,
+    .menu .active {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    .content {
+      flex: 1;
+      padding: 30px;
+      overflow: auto;
+    }
+
+    h1 {
+      margin-bottom: 18px;
+      font-size: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      min-width: 980px;
+    }
+
+    thead tr {
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    th,
+    td {
+      padding: 10px 8px;
+      vertical-align: middle;
+    }
+
+    tr+tr {
+      border-top: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    select,
+    button,
+    input {
+      padding: 6px;
+    }
+
+    button.save-btn {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(180deg, #2b2b2b, #1f1f1f);
+      color: #fff;
+    }
+
+    button.view-btn {
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #9cf;
+      text-decoration: underline;
+    }
+
+    .row-msg {
+      color: #f66;
+      display: none;
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    .items-list {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #ddd;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 8px;
+      border-radius: 8px;
+    }
+
+    .empty {
+      color: #999;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .muted {
+      color: #aaa;
+      font-size: 13px;
+    }
+
+    .small {
+      font-size: 13px;
+      color: #bbb;
+    }
+
+    .addr {
+      white-space: pre-wrap;
+      max-width: 420px;
+      word-wrap: break-word;
+      color: #ddd;
+      font-size: 13px;
+    }
+
+    .item-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+    }
+
+    .item-table th,
+    .item-table td {
+      padding: 6px 8px;
+      font-size: 13px;
+      color: #ddd;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.03);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <div class="logo">spect<span>ɾ</span></div>
+    <div class="menu">
+      <a href="/view/admin/dashboard">Dashboard</a>
+      <a href="/view/admin/users">Manage Users</a>
+      <a href="/view/admin/products">Manage Products</a>
+      <a class="active" href="/view/admin/orders">Manage Orders</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </div>
+
+  <div class="content">
+    <h1>Manage Orders</h1>
+
+    <div id="container">
+      <div id="loading" class="muted">Loading orders…</div>
+      <div id="error" class="muted" style="display:none;"></div>
+
+      <table id="orders-table" style="display:none;">
+        <thead>
+          <tr>
+            <th style="width:64px">ID</th>
+            <th>Customer (UserID)</th>
+            <th>Status</th>
+            <th style="width:120px">Items</th>
+            <th style="width:120px">Total (₹)</th>
+            <th style="width:260px">Address</th>
+            <th style="width:170px">Created</th>
+            <th style="width:160px">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="orders-tbody"></tbody>
+      </table>
+
+      <div id="empty" class="empty" style="display:none;">No orders found.</div>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      window.location.href = "/view/login";
+    }
+
+    function logout() {
+      localStorage.removeItem("access_token");
+      document.cookie = "refresh_token=; Max-Age=0; path=/;";
+      window.location.href = "/view/login";
+    }
+
+    function setRowMessage(tr, text, isError = true) {
+      let msg = tr.querySelector(".row-msg");
+      if (!msg) {
+        msg = document.createElement("div");
+        msg.className = "row-msg";
+        tr.querySelector("td:last-child").appendChild(msg);
+      }
+      msg.style.display = "block";
+      msg.style.color = isError ? "#f66" : "#8f8";
+      msg.textContent = text;
+      setTimeout(() => { msg.style.display = "none"; msg.textContent = ""; }, 3000);
+    }
+
+    async function fetchOrders() {
+      const loadingEl = document.getElementById("loading");
+      const errorEl = document.getElementById("error");
+      const table = document.getElementById("orders-table");
+      const tbody = document.getElementById("orders-tbody");
+      const emptyEl = document.getElementById("empty");
+
+      loadingEl.style.display = "block";
+      errorEl.style.display = "none";
+      table.style.display = "none";
+      emptyEl.style.display = "none";
+      tbody.innerHTML = "";
+
+      try {
+        const res = await fetch("/admin/orders", {
+          method: "GET",
+          headers: { "Authorization": "Bearer " + token }
+        });
+
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(txt || `status ${res.status}`);
+        }
+
+        const payload = await res.json();
+        const orders = payload && payload.data ? payload.data : [];
+
+        if (!Array.isArray(orders) || orders.length === 0) {
+          emptyEl.style.display = "block";
+          loadingEl.style.display = "none";
+          return;
+        }
+
+        for (const ord of orders) {
+
+          const id = ord.id;
+          const userId = ord.user_id;
+          const status = ord.status ?? "pending";
+          const createdAt = ord.created_at;
+          const createdStr = createdAt ? (new Date(createdAt)).toLocaleString() : "-";
+          const totalAmount = Number(ord.total_amount ?? 0);
+          const address = ord.address ?? "-";
+          const orderItems = Array.isArray(ord.order_items) ? ord.order_items : [];
+
+          const itemsCount = orderItems.length;
+
+          const tr = document.createElement("tr");
+          tr.dataset.id = id;
+
+          tr.innerHTML = `
+            <td>${escapeHtml(String(id))}</td>
+            <td class="small">User #${escapeHtml(String(userId))}</td>
+            <td>
+              <select class="status-select" data-original="${escapeHtml(status)}">
+                <option value="pending" ${status === "pending" ? "selected" : ""}>pending</option>
+                <option value="delivered" ${status === "delivered" ? "selected" : ""}>delivered</option>
+                <option value="cancelled" ${status === "cancelled" ? "selected" : ""}>cancelled</option>
+              </select>
+            </td>
+            <td>
+              <div>${itemsCount} item${itemsCount !== 1 ? "s" : ""}</div>
+              <button class="view-btn">View items</button>
+            </td>
+            <td>${formatMoney(totalAmount)}</td>
+            <td class="addr">${escapeHtml(String(address))}</td>
+            <td>${escapeHtml(createdStr)}</td>
+            <td>
+              <button class="save-btn">Save</button>
+              <div class="row-msg"></div>
+            </td>
+          `;
+
+
+          const itemsRow = document.createElement("tr");
+          const itemsTd = document.createElement("td");
+          itemsTd.colSpan = 8;
+          itemsTd.style.display = "none";
+          itemsTd.innerHTML = `<div class="items-list"></div>`;
+          itemsRow.appendChild(itemsTd);
+
+          const itemsListDiv = itemsTd.querySelector(".items-list");
+          if (orderItems.length === 0) {
+            itemsListDiv.textContent = "No items.";
+          } else {
+            const tableHtml = document.createElement("table");
+            tableHtml.className = "item-table";
+            const thead = document.createElement("thead");
+            thead.innerHTML = `<tr><th>Product ID</th><th>Qty</th><th>Unit Price</th><th>Total Price</th></tr>`;
+            tableHtml.appendChild(thead);
+            const tbodyItems = document.createElement("tbody");
+
+            for (const it of orderItems) {
+              const pid = it.product_id ?? it.ProductID ?? "";
+              const qty = Number(it.quantity ?? it.Quantity ?? 0);
+              const unit = Number(it.unit_price ?? it.UnitPrice ?? 0);
+              const total = Number(it.total_price ?? it.TotalPrice ?? (unit * qty));
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td>${escapeHtml(String(pid))}</td>
+                <td>${escapeHtml(String(qty))}</td>
+                <td>${formatMoney(unit)}</td>
+                <td>${formatMoney(total)}</td>
+              `;
+              tbodyItems.appendChild(row);
+            }
+
+            tableHtml.appendChild(tbodyItems);
+            itemsListDiv.appendChild(tableHtml);
+          }
+
+          tbody.appendChild(tr);
+          tbody.appendChild(itemsRow);
+
+
+          const viewBtn = tr.querySelector(".view-btn");
+          const saveBtn = tr.querySelector(".save-btn");
+          const statusSelect = tr.querySelector(".status-select");
+
+          viewBtn.addEventListener("click", () => {
+            const visible = itemsTd.style.display === "table-cell" || itemsTd.style.display === "block";
+            itemsTd.style.display = visible ? "none" : "table-cell";
+            viewBtn.textContent = visible ? "View items" : "Hide items";
+          });
+
+          saveBtn.addEventListener("click", async () => {
+            saveBtn.disabled = true;
+            const original = statusSelect.dataset.original;
+            const newStatus = statusSelect.value;
+            if (newStatus === original) {
+              setRowMessage(tr, "No changes to save", false);
+              saveBtn.disabled = false;
+              return;
+            }
+            saveBtn.textContent = "Saving...";
+            try {
+              const res = await fetch(`/admin/order/${encodeURIComponent(id)}`, {
+                method: "PATCH",
+                headers: {
+                  "Authorization": "Bearer " + token,
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ status: newStatus })
+              });
+              if (!res.ok) {
+                const txt = await res.text();
+                throw new Error(txt || `status ${res.status}`);
+              }
+              const result = await res.json();
+
+
+              const returned = result && result.data ? result.data : null;
+              if (returned && (returned.status ?? returned.Status)) {
+                const returnedStatus = returned.status ?? returned.Status;
+                statusSelect.dataset.original = returnedStatus;
+                statusSelect.value = returnedStatus;
+              } else {
+                statusSelect.dataset.original = newStatus;
+              }
+
+              setRowMessage(tr, "Saved", false);
+            } catch (err) {
+              console.error(err);
+              setRowMessage(tr, "Update failed: " + (err && err.message ? err.message : "unknown"), true);
+            } finally {
+              saveBtn.disabled = false;
+              saveBtn.textContent = "Save";
+            }
+          });
+
+        }
+
+        table.style.display = "table";
+        loadingEl.style.display = "none";
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById("loading").style.display = "none";
+        const e = document.getElementById("error");
+        e.style.display = "block";
+        e.textContent = "Failed to load orders: " + (err.message || "unknown");
+      }
+    }
+
+    function escapeHtml(str) {
+      if (str === undefined || str === null) return "";
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatMoney(v) {
+      if (v === null || v === undefined || v === "") return "-";
+      const n = Number(v);
+      if (Number.isNaN(n)) return escapeHtml(String(v));
+      return n.toFixed(2);
+    }
+
+
+    fetchOrders();
+
+
+    window.addEventListener("focus", () => {
+      location.reload();
+    });
+  </script>
+</body>
+
+</html>

@@ -7,12 +7,20 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/junaid9001/spectr_backend/models"
+	"github.com/junaid9001/spectr_backend/utils"
 	"gorm.io/gorm"
 )
 
+//done
+
 func GetUserProfile(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userId := c.MustGet("userId").(int)
+
+		//get user if also safe accertion
+		userId, ok := utils.GetUserId(c)
+		if !ok {
+			return
+		}
 
 		var user models.User
 
@@ -52,7 +60,11 @@ func UpdateUserProfile(db *gorm.DB) gin.HandlerFunc {
 			Name string `json:"name" binding:"required,min=1"`
 		}
 
-		userId := c.MustGet("userId").(int)
+		//get user if also safe accertion
+		userId, ok := utils.GetUserId(c)
+		if !ok {
+			return
+		}
 
 		if err := c.ShouldBindJSON(&input); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{

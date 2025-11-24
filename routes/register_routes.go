@@ -7,5 +7,6 @@ import (
 func RegisterRoutes(r *gin.Engine) {
 	AuthRoutes(r)
 	UserRoutes(r)
+	AdminRoutes(r)
 	ViewRoutes(r)
 }

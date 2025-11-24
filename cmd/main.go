@@ -15,12 +15,13 @@ func main() {
 
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
+	r.Static("/uploads", "./uploads")
 
 	//register all routes
 	routes.RegisterRoutes(r)
 
-	r.GET("/signup", func(ctx *gin.Context) {
-		ctx.HTML(200, "signup.html", "")
+	r.GET("/", func(ctx *gin.Context) {
+		ctx.HTML(200, "login.html", "")
 	})
 
 	r.Run(":8080")
