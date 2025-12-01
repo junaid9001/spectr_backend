@@ -8,5 +8,6 @@ func RegisterRoutes(r *gin.Engine) {
 	AuthRoutes(r)
 	UserRoutes(r)
 	AdminRoutes(r)
+	PublicRoutes(r)
 	ViewRoutes(r)
 }

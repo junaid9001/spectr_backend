@@ -131,7 +131,8 @@ type ProductUpdateInput struct {
 	Description   *string  `json:"description"`
 	Price         *float64 `json:"price"`
 	StockQuantity *int     `json:"stock_quantity"`
-	Category      *string  `json:"category"`
+	CategoryID    *uint    `json:"category_id"`
+	Brand         *string  `json:"brand"`
 }
 
 //update product info by id
@@ -195,12 +196,16 @@ func UpdateProductByID(db *gorm.DB) gin.HandlerFunc {
 				product.StockQuantity = *input.StockQuantity
 			}
 
-			if input.Category != nil {
-				product.Category = *input.Category
+			if input.CategoryID != nil {
+				product.CategoryID = input.CategoryID
+			}
+
+			if input.Brand != nil {
+				product.Brand = *input.Brand
 			}
 
 			if product.Price < 0 {
-				return fmt.Errorf("price cant be less that zero")
+				return fmt.Errorf("price can't be less that zero")
 			}
 
 			if err := tx.Save(&product).Error; err != nil {

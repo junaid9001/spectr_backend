@@ -5,6 +5,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Spectr — Manage Products</title>
+
+    <!-- jQuery + jsTree -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+
     <style>
         * {
             margin: 0;
@@ -18,7 +25,7 @@
             display: flex;
             min-height: 100vh;
             background: #0f0f0f;
-            color: #fff
+            color: #fff;
         }
 
         .sidebar {
@@ -27,20 +34,19 @@
             border-right: 1px solid rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(20px);
             padding: 28px 20px;
-            
         }
 
         .logo {
             font-size: 26px;
             font-weight: 900;
             margin-bottom: 30px;
-            letter-spacing: -1px
+            letter-spacing: -1px;
         }
 
         .logo span {
             transform: scaleX(-1);
             display: inline-block;
-            color: #ffffff
+            color: #ffffff;
         }
 
         .menu a {
@@ -50,101 +56,201 @@
             text-decoration: none;
             color: rgba(255, 255, 255, 0.8);
             border-radius: 10px;
-            transition: background .25s
+            transition: background .25s;
         }
 
         .menu a:hover,
         .menu .active {
             background: rgba(255, 255, 255, 0.12);
-            color: #fff
+            color: #fff;
         }
 
         .content {
             flex: 1;
-            padding: 30px;
-            overflow: auto
+            padding: 24px 28px;
+            overflow: auto;
         }
 
         h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 14px;
-            font-size: 20px
         }
 
-        /* create card */
-        .card {
-            background: rgba(255, 255, 255, 0.02);
-            padding: 14px;
-            border-radius: 10px;
-            margin-bottom: 18px
-        }
-
-        .row {
+        .top-actions {
             display: flex;
             gap: 8px;
-            flex-wrap: wrap
-        }
-
-        input,
-        select,
-        textarea,
-        button {
-            font-family: inherit
-        }
-
-        input[type="text"],
-        input[type="number"],
-        input[type="file"],
-        textarea,
-        select {
-            padding: 8px;
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            color: #fff;
-            border-radius: 8px;
         }
 
         button {
             cursor: pointer;
             border: none;
-            padding: 8px 12px;
-            border-radius: 8px;
+            padding: 6px 12px;
+            border-radius: 999px;
             background: linear-gradient(180deg, #2b2b2b, #1f1f1f);
             color: #fff;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
+        button.small {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        button.ghost {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            padding: 6px 8px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff;
+            border-radius: 999px;
+            font-size: 13px;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.45);
+        }
+
+        select {
+            min-width: 140px;
+        }
+
+        option {
+            color: #000;
+        }
+
+        /* Filters bar */
+        .filters-card {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            padding: 8px 10px 10px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .filters-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: flex-start;
+        }
+
+        .filter-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-group label {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .filter-group input[type="text"] {
+            min-width: 160px;
+        }
+
+        .filters-row .f-spacer {
+            flex-grow: 1;
+        }
+
+        .filters-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .active-filter-label {
+            margin-top: 4px;
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        /* Category tree inline (small) */
+        .category-inline-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 220px;
+            max-width: 230px;
+        }
+
+        .category-tree-wrap {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 4px 6px;
+            max-height: 160px;
+            overflow: auto;
+        }
+
+        #category-tree {
+            font-size: 13px;
+        }
+
+        .category-hint {
+            font-size: 10px;
+            opacity: 0.6;
+        }
+
+        /* STATUS + TABLE */
+        .status-text {
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 60px
+            margin-top: 4px;
+            font-size: 13px;
         }
 
         thead tr {
             text-align: left;
-            border-bottom: 1px solid rgba(99, 99, 99, 0.392)
+            border-bottom: 1px solid rgba(99, 99, 99, 0.32);
         }
 
         th,
         td {
-            padding: 10px 8px;
-            vertical-align: middle
+            padding: 8px 6px;
+            vertical-align: middle;
         }
 
         tr+tr {
-            border-top: 1px solid rgba(99, 99, 99, 0.392)
+            border-top: 1px solid rgba(99, 99, 99, 0.24);
         }
 
         img.thumb {
-            height: 80px;
+            height: 60px;
             border-radius: 6px;
-            object-fit: cover
+            object-fit: cover;
         }
 
         .actions button {
-            margin-right: 8px
+            margin-right: 4px;
         }
 
-
+        /* Modal / backdrop */
         .modal-backdrop {
             position: fixed;
             inset: 0;
@@ -152,30 +258,45 @@
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 60
+            z-index: 60;
         }
 
         .modal {
             background: #0b0b0b;
-            padding: 18px;
+            padding: 16px 16px 14px;
             border-radius: 12px;
             min-width: 320px;
-            max-width: 720px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6)
+            max-width: 620px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .modal h3 {
-            margin-bottom: 12px
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .modal .row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
         }
 
         .modal .controls {
             display: flex;
             gap: 8px;
             justify-content: flex-end;
-            margin-top: 12px
+            margin-top: 10px;
         }
 
-        
+        .modal input[type="text"],
+        .modal input[type="number"],
+        .modal input[type="file"] {
+            border-radius: 8px;
+        }
+
+        /* Toasts */
         .toast-wrap {
             position: fixed;
             right: 18px;
@@ -183,24 +304,55 @@
             z-index: 80;
             display: flex;
             flex-direction: column;
-            gap: 8px
+            gap: 8px;
         }
 
         .toast {
             background: #111;
-            padding: 10px 12px;
+            padding: 9px 11px;
             border-radius: 8px;
             color: #fff;
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
-            min-width: 200px
+            min-width: 200px;
+            font-size: 13px;
         }
 
         .toast.success {
-            border: 1px solid #2d8f5a
+            border: 1px solid #2d8f5a;
         }
 
         .toast.error {
-            border: 1px solid #c64a4a
+            border: 1px solid #c64a4a;
+        }
+
+        /* jsTree dark adjustments */
+        .jstree-default .jstree-anchor {
+            color: #f5f5f5;
+        }
+
+        .jstree-default .jstree-clicked {
+            background: rgba(255, 255, 255, 0.14);
+            border-radius: 6px;
+        }
+
+        .jstree-default .jstree-hovered {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+        }
+
+        @media (max-width: 960px) {
+            .filters-row {
+                align-items: stretch;
+            }
+
+            .filters-card {
+                border-radius: 12px;
+            }
+
+            .category-inline-group {
+                min-width: 100%;
+                max-width: 100%;
+            }
         }
     </style>
 </head>
@@ -218,52 +370,69 @@
     </div>
 
     <div class="content">
-        <h1>Manage Products</h1>
-
-
-        <section class="card" style="padding:14px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h2 style="font-size:16px; margin:0;">Add Product</h2>
-                <button id="add-toggle"
-                    style="padding:8px 12px; border-radius:8px; border:none; cursor:pointer; background:#1e1e1e; color:#fff;">
-                     + new product
-                </button>
+        <div class="top-bar">
+            <h1>Manage Products</h1>
+            <div class="top-actions">
+                <button id="btn-add-category" class="small ghost">＋ Category</button>
+                <button id="btn-add-product" class="small">＋ Product</button>
             </div>
+        </div>
 
-            <div id="create-panel" style="display:none; margin-top:12px;">
+        <section class="filters-card">
+            <div class="filters-row">
+                <!-- Search -->
+                <div class="filter-group">
+                    <label for="search-name">Search</label>
+                    <input id="search-name" type="text" placeholder="Product name" />
+                    <button id="btn-search" class="small">Go</button>
+                </div>
 
-                <form id="create-form" enctype="multipart/form-data"
-                    style="display:flex; flex-direction:column; gap:12px;">
-                    <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                        <input name="name" placeholder="Name" required style="min-width:180px; padding:8px;" />
-                        <input name="price" type="number" step="0.01" placeholder="Price" required
-                            style="width:120px; padding:8px;" />
-                        <input name="stock_quantity" type="number" placeholder="Stock" required
-                            style="width:120px; padding:8px;" />
-                        <input name="category" placeholder="Category" style="min-width:140px; padding:8px;" />
+                <div class="filter-group">
+                    <label for="filter-brand">Brand</label>
+                    <select id="filter-brand">
+                        <option value="">All</option>
+                        <option value="posthuman">posthuman</option>
+                        <option value="meta">meta</option>
+                        <option value="cartier">cartier</option>
+                        <option value="gentle monster">gentle monster</option>
+                    </select>
+                </div>
+
+                <!-- Price dropdown -->
+                <div class="filter-group">
+                    <label for="filter-price">Price</label>
+                    <select id="filter-price">
+                        <option value="">All</option>
+                        <option value="20-50">20,000 – 50,000</option>
+                        <option value="50-70">50,000 – 70,000</option>
+                        <option value="70+">70,000+</option>
+                    </select>
+                </div>
+
+                <div class="category-inline-group">
+                    <span style="font-size:11px; opacity:0.7;">Category</span>
+                    <div class="category-tree-wrap">
+                        <div id="category-tree"></div>
                     </div>
-
-                    <div style="display:flex; gap:8px; align-items:center;">
-                        <input name="description" placeholder="Short description" style="flex:1; padding:8px;" />
-                        <input name="image" type="file" accept="image/*" style="color:#fff;" />
-                        <button type="submit"
-                            style="padding:8px 12px; border-radius:8px; border:none; cursor:pointer; background:#2b2b2b; color:#ffffff;">
-                            Add
-                        </button>
+                    <div class="category-hint">
+                        Click a node to filter by that category and its children.
                     </div>
+                </div>
 
-                    <div id="create-msg" style="margin-top:4px; color:#f66; display:none;"></div>
-                </form>
+                <div class="f-spacer"></div>
 
+                <div class="filters-actions">
+                    <button id="btn-reset-filters" class="small ghost">Reset</button>
+                </div>
             </div>
+            <div id="active-filter" class="active-filter-label"></div>
         </section>
 
+        <div class="status-text" id="prod-error" style="color:#f66; display:none;"></div>
+        <div class="status-text" id="prod-loading" style="display:none;">Loading…</div>
 
+        <!-- PRODUCTS TABLE -->
         <section>
-
-            <div id="prod-error" style="color:#f66; display:none; margin-bottom:8px"></div>
-            <div id="prod-loading" style="padding:8px 0; display:none">Loading…</div>
-
             <table id="prod-table">
                 <thead>
                     <tr>
@@ -271,7 +440,8 @@
                         <th>Name</th>
                         <th style="width:120px">Price</th>
                         <th style="width:100px">Stock</th>
-                        <th style="width:120px">Category</th>
+                        <th style="width:120px">Category ID</th>
+                        <th style="width:120px">Brand</th>
                         <th style="width:80px">Image</th>
                         <th style="width:180px">Actions</th>
                     </tr>
@@ -283,15 +453,18 @@
                         <td class="p-name">{{.Name}}</td>
                         <td class="p-price">{{printf "%.2f" .Price}}</td>
                         <td class="p-stock">{{.StockQuantity}}</td>
-                        <td class="p-category">{{.Category}}</td>
+                        <td class="p-category-id">
+                            {{if .CategoryID}}{{.CategoryID}}{{else}}-{{end}}
+                        </td>
+                        <td class="p-brand">{{.Brand}}</td>
                         <td>
                             {{if .ImageUrl}}
                             <img class="thumb" src="{{.ImageUrl}}" alt="{{.Name}}" />
                             {{else}} - {{end}}
                         </td>
                         <td class="actions">
-                            <button class="edit-btn">Edit</button>
-                            <button class="delete-btn">Delete</button>
+                            <button class="small edit-btn">Edit</button>
+                            <button class="small ghost delete-btn">Delete</button>
                         </td>
                     </tr>
                     {{end}}
@@ -300,46 +473,98 @@
         </section>
     </div>
 
-
-    <div id="modal" class="modal-backdrop" role="dialog" aria-hidden="true">
+    <div id="create-modal" class="modal-backdrop" role="dialog" aria-hidden="true">
         <div class="modal" role="document" aria-modal="true">
-            <h3>Edit product</h3>
-            <form id="edit-form">
-                <input type="hidden" name="id" id="edit-id">
-                <div style="display:flex;gap:8px;flex-wrap:wrap">
-                    <input id="edit-name" name="name" placeholder="Name" style="min-width:180px" required />
-                    <input id="edit-price" name="price" type="number" step="0.01" placeholder="Price"
-                        style="width:120px" required />
-                    <input id="edit-stock" name="stock_quantity" type="number" placeholder="Stock" style="width:120px"
-                        required />
-                    <input id="edit-category" name="category" placeholder="Category" style="min-width:140px" />
+            <h3>Add product</h3>
+            <form id="create-form" enctype="multipart/form-data">
+                <div class="row">
+                    <input name="name" placeholder="Name" required style="min-width:180px;" />
+                    <input name="price" type="number" step="0.01" placeholder="Price" required style="width:120px;" />
+                    <input name="stock_quantity" type="number" placeholder="Stock" required style="width:120px;" />
                 </div>
-                <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
-                    <input id="edit-description" name="description" placeholder="Short description" style="flex:1" />
-                    
-                    <div id="edit-image-wrap" style="display:flex;align-items:center;gap:8px">
-                        <img id="edit-image" class="thumb" src="" alt="" style="height:40px" />
-                        <small class="small" style="color:#aaa">Image changes are not supported in edit</small>
-                    </div>
+                <div class="row">
+                    <input name="category_id" type="number" min="0" placeholder="Category ID (optional)"
+                        style="width:160px;" />
+                    <input name="brand" placeholder="Brand (default: spectr)" style="min-width:140px;" />
                 </div>
-
+                <div class="row">
+                    <input name="description" placeholder="Short description" style="flex:1; min-width:100%;" />
+                </div>
+                <div class="row" style="align-items:center;">
+                    <input name="image" type="file" accept="image/*" style="color:#fff;" />
+                </div>
+                <div id="create-msg" style="margin-top:4px; color:#f66; display:none;"></div>
                 <div class="controls">
-                    <button type="button" id="modal-cancel">Cancel</button>
-                    <button type="submit">Save changes</button>
+                    <button type="button" id="create-cancel" class="ghost small">Cancel</button>
+                    <button type="submit" class="small">Create</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <div id="edit-modal" class="modal-backdrop" role="dialog" aria-hidden="true">
+        <div class="modal" role="document" aria-modal="true">
+            <h3>Edit product</h3>
+            <form id="edit-form">
+                <input type="hidden" id="edit-id">
+                <div class="row">
+                    <input id="edit-name" name="name" placeholder="Name" style="min-width:180px;" required />
+                    <input id="edit-price" name="price" type="number" step="0.01" placeholder="Price"
+                        style="width:120px;" required />
+                    <input id="edit-stock" name="stock_quantity" type="number" placeholder="Stock"
+                        style="width:120px;" required />
+                </div>
+                <div class="row">
+                    <input id="edit-category-id" name="category_id" type="number" min="0" placeholder="Category ID"
+                        style="width:160px;" />
+                    <input id="edit-brand" name="brand" placeholder="Brand" style="min-width:140px;" />
+                </div>
+                <div class="row" style="align-items:center;">
+                    <input id="edit-description" name="description" placeholder="Short description" style="flex:1;" />
+                    <div id="edit-image-wrap" style="display:flex;align-items:center;gap:8px;">
+                        <img id="edit-image" class="thumb" src="" alt="" style="height:40px;" />
+                        <small style="color:#aaa; font-size:11px;">Image changes are not supported in edit</small>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button type="button" id="edit-cancel" class="ghost small">Cancel</button>
+                    <button type="submit" class="small">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD CATEGORY MODAL -->
+    <div id="category-modal" class="modal-backdrop" role="dialog" aria-hidden="true">
+        <div class="modal" role="document" aria-modal="true">
+            <h3>Add category</h3>
+            <form id="category-form">
+                <div class="row">
+                    <input id="cat-name" type="text" placeholder="Category name" required style="flex:1;" />
+                </div>
+                <div class="row">
+                    <input id="cat-parent-id" type="number" min="0" placeholder="Parent ID (optional)"
+                        style="width:160px;" />
+                </div>
+                <div class="controls">
+                    <button type="button" id="category-cancel" class="ghost small">Cancel</button>
+                    <button type="submit" class="small">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div class="toast-wrap" id="toast-wrap"></div>
 
     <script>
-
         const token = localStorage.getItem("access_token");
         if (!token) location.href = "/view/login";
-        function logout() { localStorage.removeItem("access_token"); document.cookie = "refresh_token=; Max-Age=0; path=/;"; location.href = "/view/login"; }
 
+        function logout() {
+            localStorage.removeItem("access_token");
+            document.cookie = "refresh_token=; Max-Age=0; path=/;";
+            location.href = "/view/login";
+        }
 
         function toast(message, type = "success", timeout = 3000) {
             const wrap = document.getElementById("toast-wrap");
@@ -347,22 +572,61 @@
             t.className = "toast " + (type === "error" ? "error" : "success");
             t.textContent = message;
             wrap.appendChild(t);
-            setTimeout(() => { t.style.opacity = "0"; setTimeout(() => wrap.removeChild(t), 250); }, timeout);
+            setTimeout(() => {
+                t.style.opacity = "0";
+                setTimeout(() => wrap.removeChild(t), 250);
+            }, timeout);
+        }
+
+        function setActiveFilterLabel(text) {
+            const el = document.getElementById("active-filter");
+            el.textContent = text || "";
         }
 
         function showCreateMsg(msg, isError = true) {
             const el = document.getElementById("create-msg");
+            if (!msg) {
+                el.style.display = "none";
+                return;
+            }
             el.style.display = "block";
             el.style.color = isError ? "#f66" : "#8f8";
             el.textContent = msg;
             setTimeout(() => el.style.display = "none", 2500);
         }
 
+        function openBackdrop(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.display = "flex";
+                el.setAttribute("aria-hidden", "false");
+            }
+        }
+
+        function closeBackdrop(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.display = "none";
+                el.setAttribute("aria-hidden", "true");
+            }
+        }
+
+        
+        document.getElementById("btn-add-product").addEventListener("click", () => {
+            document.getElementById("create-form").reset();
+            showCreateMsg("", true);
+            openBackdrop("create-modal");
+        });
+
+        document.getElementById("create-cancel").addEventListener("click", () => {
+            closeBackdrop("create-modal");
+        });
 
         document.getElementById("create-form").addEventListener("submit", async (e) => {
             e.preventDefault();
             const form = e.target;
             const fd = new FormData(form);
+
             if (!fd.get("price") || fd.get("price") === "") return showCreateMsg("Price required");
             if (!fd.get("stock_quantity") || fd.get("stock_quantity") === "") return showCreateMsg("Stock required");
 
@@ -372,99 +636,110 @@
                     headers: { "Authorization": "Bearer " + token },
                     body: fd
                 });
+
                 const text = await res.text();
                 let json = {};
-                try { json = JSON.parse(text); } catch (e) { json = { message: text }; }
+                try { json = JSON.parse(text); } catch (_) { json = { message: text }; }
 
                 if (!res.ok) {
                     showCreateMsg("Create failed: " + (json.error || json.message || res.status), true);
+                    toast("Create failed: " + (json.error || json.message || res.status), "error");
                     return;
                 }
 
                 showCreateMsg("Product created", false);
                 toast("Product created", "success");
-                form.reset();
-
-                setTimeout(() => location.reload(), 700);
+                setTimeout(() => location.reload(), 600);
             } catch (err) {
                 showCreateMsg("Create failed: " + err.message, true);
                 toast("Create failed: " + err.message, "error");
             }
         });
 
+        const editModalId = "edit-modal";
 
-        const modal = document.getElementById("modal");
-        function openModal() { modal.style.display = "flex"; modal.setAttribute("aria-hidden", "false"); }
-        function closeModal() { modal.style.display = "none"; modal.setAttribute("aria-hidden", "true"); }
+        function attachRowHandlers() {
+            document.querySelectorAll("tbody tr[data-id]").forEach(tr => {
+                const id = tr.dataset.id;
+                const editBtn = tr.querySelector(".edit-btn");
+                const delBtn = tr.querySelector(".delete-btn");
 
-        document.getElementById("modal-cancel").addEventListener("click", (e) => { e.preventDefault(); closeModal(); });
+                // EDIT
+                editBtn && editBtn.addEventListener("click", () => {
+                    const name = tr.querySelector(".p-name")?.textContent?.trim() || "";
+                    const price = tr.querySelector(".p-price")?.textContent?.trim() || "0";
+                    const stock = tr.querySelector(".p-stock")?.textContent?.trim() || "0";
+                    const catIdText = tr.querySelector(".p-category-id")?.textContent?.trim() || "";
+                    const brand = tr.querySelector(".p-brand")?.textContent?.trim() || "";
+                    const img = tr.querySelector("img.thumb")?.src || "";
 
+                    document.getElementById("edit-id").value = id;
+                    document.getElementById("edit-name").value = name;
+                    document.getElementById("edit-price").value = price;
+                    document.getElementById("edit-stock").value = stock;
+                    document.getElementById("edit-category-id").value = (catIdText === "-" ? "" : catIdText);
+                    document.getElementById("edit-brand").value = brand;
+                    document.getElementById("edit-description").value = "";
 
-        document.querySelectorAll("tbody tr[data-id]").forEach(tr => {
-            const id = tr.dataset.id;
-            const editBtn = tr.querySelector(".edit-btn");
-            const delBtn = tr.querySelector(".delete-btn");
-
-            editBtn && editBtn.addEventListener("click", (ev) => {
-
-                const name = tr.querySelector(".p-name")?.textContent?.trim() || "";
-                const price = tr.querySelector(".p-price")?.textContent?.trim() || "0";
-                const stock = tr.querySelector(".p-stock")?.textContent?.trim() || "0";
-                const cat = tr.querySelector(".p-category")?.textContent?.trim() || "";
-                const img = tr.querySelector("img.thumb")?.src || "";
-
-                document.getElementById("edit-id").value = id;
-                document.getElementById("edit-name").value = name;
-                document.getElementById("edit-price").value = price;
-                document.getElementById("edit-stock").value = stock;
-                document.getElementById("edit-category").value = cat;
-                document.getElementById("edit-description").value = "";
-                const editImage = document.getElementById("edit-image");
-                if (img) { editImage.src = img; editImage.style.display = "inline-block"; } else { editImage.style.display = "none"; }
-                openModal();
-            });
-
-            delBtn && delBtn.addEventListener("click", async () => {
-
-                const ok = confirmDeleteUI();
-                if (!ok) return;
-                try {
-                    const res = await fetch(`/admin/product/${encodeURIComponent(id)}`, {
-                        method: "DELETE",
-                        headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" }
-                    });
-                    const text = await res.text();
-                    let json = {};
-                    try { json = JSON.parse(text); } catch (e) { json = { message: text }; }
-                    if (!res.ok) {
-                        toast("Delete failed: " + (json.error || json.message || res.status), "error");
-                        return;
+                    const editImage = document.getElementById("edit-image");
+                    if (img) {
+                        editImage.src = img;
+                        editImage.style.display = "inline-block";
+                    } else {
+                        editImage.style.display = "none";
                     }
-                    toast("Deleted", "success");
-                    setTimeout(() => location.reload(), 500);
-                } catch (err) {
-                    toast("Delete failed: " + err.message, "error");
-                }
+
+                    openBackdrop(editModalId);
+                });
+
+                
+                delBtn && delBtn.addEventListener("click", async () => {
+                    if (!confirm("Delete this product? This action will soft-delete the product.")) return;
+                    try {
+                        const res = await fetch(`/admin/product/${encodeURIComponent(id)}`, {
+                            method: "DELETE",
+                            headers: {
+                                "Authorization": "Bearer " + token,
+                                "Content-Type": "application/json"
+                            }
+                        });
+                        const text = await res.text();
+                        let json = {};
+                        try { json = JSON.parse(text); } catch (_) { json = { message: text }; }
+
+                        if (!res.ok) {
+                            toast("Delete failed: " + (json.error || json.message || res.status), "error");
+                            return;
+                        }
+                        toast("Deleted", "success");
+                        setTimeout(() => location.reload(), 500);
+                    } catch (err) {
+                        toast("Delete failed: " + err.message, "error");
+                    }
+                });
             });
-
-        });
-
-
-        function confirmDeleteUI() {
-
-            return confirm("Delete this product? This action will soft-delete the product.");
         }
+
+        attachRowHandlers();
+
+        document.getElementById("edit-cancel").addEventListener("click", () => {
+            closeBackdrop(editModalId);
+        });
 
         document.getElementById("edit-form").addEventListener("submit", async (e) => {
             e.preventDefault();
             const id = document.getElementById("edit-id").value;
-            if (!id) { toast("Missing product id", "error"); return; }
+            if (!id) {
+                toast("Missing product id", "error");
+                return;
+            }
 
             const body = {};
             const name = document.getElementById("edit-name").value.trim();
             const price = document.getElementById("edit-price").value.trim();
             const stock = document.getElementById("edit-stock").value.trim();
-            const cat = document.getElementById("edit-category").value.trim();
+            const catIdStr = document.getElementById("edit-category-id").value.trim();
+            const brand = document.getElementById("edit-brand").value.trim();
             const desc = document.getElementById("edit-description").value.trim();
 
             if (name !== "") body.name = name;
@@ -478,7 +753,12 @@
                 if (Number.isNaN(s)) return toast("Invalid stock", "error");
                 body.stock_quantity = s;
             }
-            if (cat !== "") body.category = cat;
+            if (catIdStr !== "") {
+                const cid = Number(catIdStr);
+                if (Number.isNaN(cid) || cid < 0) return toast("Invalid category id", "error");
+                body.category_id = cid;
+            }
+            if (brand !== "") body.brand = brand;
             if (desc !== "") body.description = desc;
 
             if (Object.keys(body).length === 0) {
@@ -489,12 +769,15 @@
             try {
                 const res = await fetch(`/admin/product/${encodeURIComponent(id)}`, {
                     method: "PUT",
-                    headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+                    headers: {
+                        "Authorization": "Bearer " + token,
+                        "Content-Type": "application/json"
+                    },
                     body: JSON.stringify(body)
                 });
                 const text = await res.text();
                 let json = {};
-                try { json = JSON.parse(text); } catch (e) { json = { message: text }; }
+                try { json = JSON.parse(text); } catch (_) { json = { message: text }; }
 
                 if (!res.ok) {
                     toast("Update failed: " + (json.error || json.message || res.status), "error");
@@ -502,28 +785,261 @@
                 }
 
                 toast("Product updated", "success");
-                closeModal();
+                closeBackdrop(editModalId);
                 setTimeout(() => location.reload(), 600);
             } catch (err) {
                 toast("Update failed: " + err.message, "error");
             }
         });
 
+        function renderProductsTable(products) {
+            const tbody = document.querySelector("#prod-table tbody");
+            tbody.innerHTML = "";
 
-//toggle
-        const toggle = document.getElementById("add-toggle");
-        const panel = document.getElementById("create-panel");
-        let open = false;
+            if (!Array.isArray(products) || products.length === 0) {
+                const tr = document.createElement("tr");
+                const td = document.createElement("td");
+                td.colSpan = 8;
+                td.style.padding = "12px 6px";
+                td.style.opacity = "0.7";
+                td.textContent = "No products found.";
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+                return;
+            }
 
-        toggle.addEventListener("click", () => {
-            open = !open;
-            panel.style.display = open ? "block" : "none";
-            toggle.textContent = open ? "Close" : "Add new product";
+            for (const p of products) {
+                const tr = document.createElement("tr");
+                tr.dataset.id = p.ID || p.id;
+
+                const idVal = p.ID ?? p.id ?? "";
+                const nameVal = p.Name ?? p.name ?? "";
+                const priceVal = p.Price ?? p.price ?? 0;
+                const stockVal = p.StockQuantity ?? p.stock_quantity ?? 0;
+                const catVal = p.CategoryID ?? p.category_id ?? "-";
+                const brandVal = p.Brand ?? p.brand ?? "";
+                const imgVal = p.ImageUrl ?? p.image;
+
+                tr.innerHTML = `
+                    <td>${idVal}</td>
+                    <td class="p-name">${nameVal}</td>
+                    <td class="p-price">${Number(priceVal).toFixed(2)}</td>
+                    <td class="p-stock">${stockVal}</td>
+                    <td class="p-category-id">${catVal || "-"}</td>
+                    <td class="p-brand">${brandVal}</td>
+                    <td>
+                        ${imgVal
+                        ? `<img class="thumb" src="${imgVal}" alt="${nameVal}"/>`
+                        : " - "}
+                    </td>
+                    <td class="actions">
+                        <button class="small edit-btn">Edit</button>
+                        <button class="small ghost delete-btn">Delete</button>
+                    </td>
+                `;
+
+                tbody.appendChild(tr);
+            }
+
+            attachRowHandlers();
+        }
+
+        async function fetchAndRender(url, activeLabel) {
+            setActiveFilterLabel(activeLabel || "");
+            const errEl = document.getElementById("prod-error");
+            const loadingEl = document.getElementById("prod-loading");
+            errEl.style.display = "none";
+            loadingEl.style.display = "block";
+
+            try {
+                const res = await fetch(url);
+                const text = await res.text();
+                let json = {};
+                try { json = JSON.parse(text); } catch (_) { json = { message: text }; }
+
+                loadingEl.style.display = "none";
+
+                if (!res.ok) {
+                    errEl.textContent = json.error || json.message || ("Error: " + res.status);
+                    errEl.style.display = "block";
+                    if (res.status === 404) {
+                        renderProductsTable([]);
+                    }
+                    return;
+                }
+
+                const products = json.data || [];
+                renderProductsTable(products);
+            } catch (err) {
+                loadingEl.style.display = "none";
+                errEl.textContent = "Request failed: " + err.message;
+                errEl.style.display = "block";
+            }
+        }
+
+        document.getElementById("btn-search").addEventListener("click", () => {
+            const name = document.getElementById("search-name").value.trim();
+            if (!name) {
+                toast("Enter a name to search.", "error");
+                return;
+            }
+            fetchAndRender(`/search?name=${encodeURIComponent(name)}`, `Filter: search "${name}"`);
         });
-        
+
+        document.getElementById("filter-brand").addEventListener("change", () => {
+            const brand = document.getElementById("filter-brand").value;
+            if (!brand) {
+                setActiveFilterLabel("");
+                return;
+            }
+            fetchAndRender(
+                `/products/filter-by-brand?brand=${encodeURIComponent(brand)}`,
+                `Filter: brand "${brand}"`
+            );
+        });
+
+        document.getElementById("filter-price").addEventListener("change", () => {
+            const val = document.getElementById("filter-price").value;
+            if (!val) {
+                setActiveFilterLabel("");
+                return;
+            }
+
+            let min = "";
+            let max = "";
+
+            if (val === "20-50") {
+                min = "20000";
+                max = "50000";
+            } else if (val === "50-70") {
+                min = "50000";
+                max = "70000";
+            } else if (val === "70+") {
+                min = "70000";
+                max = "999999999";
+            }
+
+            fetchAndRender(
+                `/products/filter-by-price?price_min=${encodeURIComponent(min)}&price_max=${encodeURIComponent(max)}`,
+                `Filter: price ${min} – ${max === "999999999" ? "above" : max}`
+            );
+        });
+
+        $(function () {
+            $("#category-tree").jstree({
+                core: {
+                    data: function (obj, cb) {
+                        fetch("/admin/categories/tree", {
+                            headers: { "Authorization": "Bearer " + token }
+                        })
+                            .then(res => res.json())
+                            .then(json => {
+                                if (json.status !== "success") {
+                                    toast(json.error || "Failed to load categories", "error");
+                                    cb([]);
+                                    return;
+                                }
+                                const nodes = (json.data || []).map(n => ({
+                                    id: n.id,
+                                    parent: n.parent,
+                                    text: n.text,
+                                    is_leaf: n.is_leaf
+                                }));
+                                cb(nodes);
+                            })
+                            .catch(err => {
+                                toast("Failed to load categories: " + err.message, "error");
+                                cb([]);
+                            });
+                    },
+                    themes: { stripes: false }
+                }
+            });
+
+            $("#category-tree").on("select_node.jstree", function (e, data) {
+                const node = data.node;
+                if (!node) return;
+
+                const id = node.id;
+                const name = node.text;
+
+                fetchAndRender(
+                    `/products/filter-by-category_id?category_id=${encodeURIComponent(id)}`,
+                    `Filter: category "${name}" (ID ${id})`
+                );
+            });
+        });
+
+        document.getElementById("btn-reset-filters").addEventListener("click", () => {
+            document.getElementById("search-name").value = "";
+            document.getElementById("filter-brand").value = "";
+            document.getElementById("filter-price").value = "";
+            setActiveFilterLabel("");
+            location.reload();
+        });
+
+        document.getElementById("btn-add-category").addEventListener("click", () => {
+            document.getElementById("category-form").reset();
+            openBackdrop("category-modal");
+        });
+
+        document.getElementById("category-cancel").addEventListener("click", () => {
+            closeBackdrop("category-modal");
+        });
+
+        document.getElementById("category-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const name = document.getElementById("cat-name").value.trim();
+            const parentStr = document.getElementById("cat-parent-id").value.trim();
+
+            if (!name) {
+                toast("Category name is required.", "error");
+                return;
+            }
+
+            const body = { category_name: name };
+            if (parentStr !== "") {
+                const pid = Number(parentStr);
+                if (Number.isNaN(pid) || pid <= 0) {
+                    toast("Invalid parent ID", "error");
+                    return;
+                }
+                body.parent_id = pid;
+            }
+
+            try {
+                const res = await fetch("/admin/categories", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + token,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(body)
+                });
+                const text = await res.text();
+                let json = {};
+                try { json = JSON.parse(text); } catch (_) { json = { message: text }; }
+
+                if (!res.ok) {
+                    toast("Add category failed: " + (json.error || json.message || res.status), "error");
+                    return;
+                }
+
+                toast(json.message || "Category created", "success");
+                closeBackdrop("category-modal");
+                // reload tree
+                $("#category-tree").jstree(true).refresh();
+            } catch (err) {
+                toast("Add category failed: " + err.message, "error");
+            }
+        });
 
         document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") closeModal();
+            if (e.key === "Escape") {
+                closeBackdrop("create-modal");
+                closeBackdrop(editModalId);
+                closeBackdrop("category-modal");
+            }
         });
     </script>
 </body>

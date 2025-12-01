@@ -19,6 +19,10 @@ func MigrateAll() {
 		&models.OrderItem{},
 		&models.Payment{},
 		&models.AppStats{},
+		&models.Category{},
+		&models.Filter{},
+		&models.FilterOption{},
+		&models.ProductFilterOption{},
 	)
 
 	if err != nil {

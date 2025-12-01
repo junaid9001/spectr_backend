@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -15,7 +16,7 @@ var DB *gorm.DB
 func LoadEnv() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("error while loading env" + err.Error())
+		log.Println("error while loading env")
 	}
 
 }
@@ -32,10 +33,17 @@ func ConnectDB() {
 		host, user, password, dbname, port,
 	)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	var db *gorm.DB
+	var err error
 
-	if err != nil {
-		panic("failed to connect to database " + err.Error())
+	for {
+		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		if err == nil {
+			break
+		}
+
+		log.Printf("DB not ready yet, retrying in 2 seconds... err: %v\n", err)
+		time.Sleep(2 * time.Second)
 	}
 
 	DB = db

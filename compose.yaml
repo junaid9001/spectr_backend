@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123jndjmd
+      - POSTGRES_DB=spectr_backend
+    ports:
+      - "5432:5432"  
+  server:
+    build: .
+    ports:
+     - "8080:8080"
+    depends_on: 
+      - db 
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432       

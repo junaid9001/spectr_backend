@@ -10,5 +10,6 @@ type Product struct {
 	Price         float64 `gorm:"type:decimal(10,2);not null" json:"price" binding:"required" form:"price" `
 	StockQuantity int     `gorm:"not null;default:0" json:"stock_quantity" binding:"required,gte=0" form:"stock_quantity"`
 	ImageUrl      string  `gorm:"type:text" json:"image"`
-	Category      string  `gorm:"type:varchar(100);default:'smart';index" json:"category" form:"category"`
+	CategoryID    *uint   `gorm:"constraint:OnDelete:SET NULL;" json:"category_id" form:"category_id"`
+	Brand         string  `gorm:"size:30;default:'spectr';index" json:"brand" form:"brand"`
 }

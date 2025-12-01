@@ -44,4 +44,25 @@ func AdminRoutes(r *gin.Engine) {
 		admin.GET("/orders", controllers.GetAllOrders(db))
 		admin.PATCH("/order/:id", controllers.UpdateOrderStatus(db))
 	}
+
+	//category related
+	{
+		admin.POST("/categories", controllers.AddCategory(db))
+		admin.DELETE("/categories/:id", controllers.DeleteCategoryByID(db))
+		admin.GET("/categories/tree", controllers.CategoryTree(db))
+		admin.GET("/categories", controllers.AllCategories(db))
+		admin.PUT("/edit/category/:id", controllers.EditCategoryByID(db))
+	}
+
+	//add filters
+	{
+		admin.POST("/add/filter", controllers.AddFilter(db))
+		//add option like male female
+		admin.POST("/add/filter_option", controllers.AddFilterOption(db))
+		//link product with filteroption
+		admin.POST("/link_filter", controllers.AddFilterOptionToProduct(db))
+
+		admin.GET("/filtered_products/:id", controllers.ViewProductsByFilterOptionId(db))
+	}
+
 }
