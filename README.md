@@ -123,3 +123,12 @@ Key steps when using Docker/Compose:
 - Services: [`services/otp_service.go`](services/otp_service.go), [`services/mail_service.go`](services/mail_service.go)
 - Templates: [`templates/login.html`](templates/login.html), [`templates/dashboard.html`](templates/dashboard.html), [`templates/users.html`](templates/users.html), [`templates/products.html`](templates/products.html), [`templates/orders.html`](templates/orders.html)
 - Docker & compose: [`Dockerfile`](Dockerfile), [`compose.yaml`](compose.yaml), [`.env.example`](.env.example)
+  
+![Go](https://img.shields.io/badge/Go-00ADD8?logo=go&logoColor=white)
+![Gin](https://img.shields.io/badge/Gin-008ECF?logo=go&logoColor=white)
+![GORM](https://img.shields.io/badge/GORM-00ADD8?logo=go&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=white)
+![Redux](https://img.shields.io/badge/Redux-764ABC?logo=redux&logoColor=white)
+
